@@ -28,14 +28,14 @@ let courses = [
     },
 ]
 
+const unknow = (request, response, next) => {
+    response.status(404).send('Error 404 , PAGE NOT FOUND')
+}
+
 //Routes
 app.get('/', (request, response) => {
      response.send('<h1>Application Node JS </h1>')
 })
-
-// app.get('/api/courses', (request, response) => {
-//      response.json(courses)
-// })
 
 app.get('/api/courses', (request,response) => {
     Model.find({}).then(result => {
@@ -43,37 +43,35 @@ app.get('/api/courses', (request,response) => {
     })
 })
 
-app.get('/api/courses/:id', (request, response) => {
-     const courseId = Number(request.params.id)
-     const course = courses.find(cour => cour.id == courseId)
-     response.json(course)
+app.get('/api/courses/:id', (request,response) => {
+    Model.findById(request.params.id)
+    .then(result => {
+        response.json(result)
+    })
 })
 
-app.delete('/api/courses/:id', (request, response) => {
-     const courseId = Number(request.params.id)
-     const course = courses.filter(cour => cour.id !== courseId)
-     response.json(course)
+app.delete('/api/courses/:id', (request,response) => {
+    Model.findByIdAndDelete(request.params.id)
+    .then(result => {
+        response.json(result)
+    })
 })
 
-const generate = () => {
-    const generId = courses.length > 0 ? 
-    Math.random(...courses.map(c => c.id)) : 0 
-    return generId + 1
-}
-
-app.post('/api/courses', (request, response) => {
+app.put('/api/courses/:id', (request, response) => {
     const body = request.body
 
     const course = {
-         title : body.title,
-         important : body.important || false,
-         id: generate()
+        title: body.title,
+        important: body.important
     }
-
-    courses = courses.concat(course)
-    response.json(course)
+    Model.findByIdAndUpdate((request.params.id), course, {new : true})
+    .then(result => {
+        response.json(result)
+    })
 })
 
+
+app.use(unknow)
 const PORT = process.env.PORT || 3002
 app.listen(PORT, () => {
      console.log(` Server running on PORT ${PORT}`)
